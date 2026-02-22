@@ -1,0 +1,7 @@
+index,quiz,answer,miss
+0,意図的な視知覚を表す自動詞,look,False
+1,非意図的な視知覚を表す他動詞,see,False
+2,意図的な聴知覚を表す自動詞,listen,False
+3,非意図的な聴知覚を表す他動詞,hear,False
+4,聴覚に基づく印象を表す自動詞,sound,False
+5,非意図的な知覚や触覚に基づく印象を表わす動詞,feel,False
