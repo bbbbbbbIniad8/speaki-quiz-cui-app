@@ -24,9 +24,10 @@ class QuizAppController():
     def __init__(self):
         self.ui = CUIApp()
         self.line = self.ui.line
+        self.mode_dict = {"1":"nomal", "2":"miss"}
 
-    def set_quiz(self, path):
-        self.quizEngin = QuizEngin(path)
+    def set_quiz(self, path, mode="nomal"):
+        self.quizEngin = QuizEngin(path, mode)
         self.quiz_lst = self.quizEngin.quiz_lst
 
     def play_audio_spk(self, name, wait=False, duration=0,):
@@ -98,6 +99,7 @@ class QuizAppController():
 
     def retry(self):
         if self.ui.input_Yn("再挑戦しますか(Y/n)?") == True:
+            self.set_quiz(self.path, self.mode)
             self.quiz()
         else:
             exit()
@@ -111,13 +113,18 @@ class QuizAppController():
         if select == "1":
             while True:
                 self.play_audio_spk("spk")
-                path = main.input_mod("CSVファイルのパスを入力してください。: ")
-                if os.path.exists(path) == True:
-                    self.set_quiz(path)
+                self.path = main.input_mod("CSVファイルのパスを入力してください。: ")
+                if os.path.exists(self.path) == True:
                     break
                 else:
                     print("パスが間違っています。")
                     self.play_audio_spk("notviolence", True)
             print("ファイルの読み込みに成功しました。")
+            self.play_audio_spk("chuayo", True)
+            self.ui.print_one_line()
+            print("モード選択")
+            self.play_audio_spk("spk", True)
+            self.mode = self.mode_dict[main.input_option(["nomal", "only_miss"])]
+            self.set_quiz(self.path, self.mode)
             self.play_audio_spk("chuayo", True)
             self.quiz()
