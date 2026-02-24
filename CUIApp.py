@@ -5,11 +5,12 @@ class CUIApp:
     def title(self, text):
         print(f"{self.line}\n{text}\n{self.line}")
     
-    def input_option(self, option_lst):
+    def input_option(self, option_lst, sentence):
+        print(sentence)
         for index, text in enumerate(option_lst, start=1):
             print(f"[{index}: {text}]")
-        print(f"\n数字を選んでください")
         user_input = input(": ")
+        self.print_one_line()
         return user_input.strip()
     
     def print_header(self, text):
