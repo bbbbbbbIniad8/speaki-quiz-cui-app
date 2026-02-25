@@ -54,7 +54,7 @@ class QuizAppController():
         self.history_lst = self.history.tail(5)["path"].tolist()
 
     def write_history(self):
-        self.history.loc[len(self.history)] = [self.path]
+        self.history.loc[len(self.history), "path"] = [self.path]
         self.history.to_csv("history.csv")
 
     def processing_quiz(self):
