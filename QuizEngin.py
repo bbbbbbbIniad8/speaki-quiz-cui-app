@@ -3,7 +3,7 @@ import pandas as pd
 
 
 class QuizEngin():
-    def __init__(self, path, mode="nomal"):
+    def __init__(self, path, mode="nomal", answer_type="input"):
         self.path = path
         self.miss_lst = []
         self.df = pd.read_csv(path, sep=",", header=0)
@@ -31,6 +31,14 @@ class QuizEngin():
                 peke2 += " "
         print(peke)
         print(peke2)
+
+    def create_select_ans(self, answer):
+        select_lst = random.sample([d["answer"] for d in self.quiz_lst], 5)
+        if answer not in select_lst:
+            insert_index = random.randint(0, len(select_lst)-1)
+            select_lst[insert_index] = answer
+        return select_lst
+        
 
     def check_answer(self, index, user_input, quiz, answer):
         if user_input == answer:

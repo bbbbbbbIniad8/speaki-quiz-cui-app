@@ -27,12 +27,13 @@ class QuizAppController():
         self.line = self.ui.line
         self.mode_dict = {"1":"nomal", "2":"miss"}
         self.history = []
+        self.answer_type = "input"
 
-    def set_quiz(self, path, mode="nomal"):
-        self.quizEngin = QuizEngin(path, mode)
+    def set_quiz(self, path, mode="nomal", answer_type="input"):
+        self.quizEngin = QuizEngin(path, mode, answer_type)
         self.quiz_lst = self.quizEngin.quiz_lst
 
-    def play_audio_spk(self, name, wait=False, duration=0,):
+    def play_audio_spk(self, name, wait=False, duration=0):
         audio_file = {  "spk": "spk/speaki.mp3", 
                         "chuayo": "spk/chuayo.mp3",
                         "uaa": "spk/uaa.mp3",
@@ -58,22 +59,30 @@ class QuizAppController():
         self.history.to_csv("history.csv")
 
     def processing_quiz(self):
-        for i, element in enumerate(self.quiz_lst, start=1):
+        question_sentence =  f"{self.line}\n第{{num}}問\n"
+        for num, element in enumerate(self.quiz_lst, start=1):
             index, quiz, answer = element["index"], element["quiz"], element["answer"]
             while True:
-                print(f"{self.line}\n第{i}問\n{{Q}}".format(Q = f"以下の日本語を英語に直しなさい\n{quiz}"))
+                print(question_sentence.format(num=num))
                 self.play_audio_spk("spk")
-                user_input = self.ui.input_mod("入力:")
+                if self.answer_type == "input":
+                    user_input = self.ui.input_mod(f"日本語から英語にしてください。\n\n{quiz}\n入力:")
+                else:
+                    select = self.quizEngin.create_select_ans(answer)
+                    user_input = self.ui.input_option(select, f"正しい選択肢を選びなさい\n\n{quiz}\n")
                 if user_input == "end":
                     self.retry()
                     continue
+                elif self.answer_type == "select":
+                    user_input = select[int(user_input)-1]
                 correct = self.quizEngin.check_answer(index, user_input, quiz, answer)
                 break
             if correct:
                 self.ui.print_header("正解!!")
                 self.play_audio_spk("chuayo", wait=True)
             else:
-                self.quizEngin.marking(user_input, answer)
+                if self.answer_type == "input":
+                    self.quizEngin.marking(user_input, answer)
                 print(f"不正解\n正解は{answer}")
                 self.ui.print_one_line()
                 if random.randint(0, 1) == 0:
@@ -113,35 +122,42 @@ class QuizAppController():
         else:
             exit()
 
+    def check_path(self):
+        while True:
+            self.play_audio_spk("spk")
+            self.path = self.main.input_option(self.history_lst, "CSVファイルのパスを入力してください。")
+            if os.path.exists(self.path) == True:
+                self.write_history()
+                break
+            else:
+                try:
+                    self.path = self.history_lst[int(self.path)-1]
+                    if os.path.exists(self.path) == True:
+                        break
+                except:
+                    print("パスが間違っています。")
+                    self.play_audio_spk("notviolence", True)
+        
+        print("ファイルの読み込みに成功しました。")
+        self.play_audio_spk("chuayo", True)
+        self.ui.print_one_line()
+
     def run(self):
-        main = CUIApp()
-        main.title("Welcome To Speaki Quiz")
+        self.main = CUIApp()
+        self.main.title("Welcome To Speaki Quiz")
         self.play_audio_spk("squash", True, 2)
         self.play_audio_spk("spk")
-        select = main.input_option(["quiz"], "")
+        select = self.main.input_option(["quiz(input)", "quiz(select)"], "")
         self.read_history()
-        if select == "1":
-            while True:
-                self.play_audio_spk("spk")
-                self.path = main.input_option(self.history_lst, "CSVファイルのパスを入力してください。")
-                if os.path.exists(self.path) == True:
-                    self.write_history()
-                    break
-                else:
-                    try:
-                        self.path = self.history_lst[int(self.path)-1]
-                        if os.path.exists(self.path) == True:
-                            break
-                    except:
-                        print("パスが間違っています。")
-                        self.play_audio_spk("notviolence", True)
-            
-            print("ファイルの読み込みに成功しました。")
-            self.play_audio_spk("chuayo", True)
-            self.ui.print_one_line()
-            print("モード選択")
-            self.play_audio_spk("spk", True)
-            self.mode = self.mode_dict[main.input_option(["nomal", "only_miss"], "数字入力でモードを選択してください。: ")]
-            self.set_quiz(self.path, self.mode)
-            self.play_audio_spk("chuayo", True)
-            self.quiz()
+
+        if select == "2":
+            self.answer_type = "select"
+        
+        self.check_path()
+        
+        print("モード選択")
+        self.play_audio_spk("spk", True)
+        self.mode = self.mode_dict[self.main.input_option(["nomal", "only_miss"], "数字入力でモードを選択してください。: ")]
+        self.set_quiz(self.path, self.mode, self.answer_type)
+        self.play_audio_spk("chuayo", True)
+        self.quiz()
