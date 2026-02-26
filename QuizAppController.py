@@ -1,9 +1,10 @@
 from CUIApp import CUIApp
 from QuizEngin import QuizEngin
 import random
-import pygame
 import time
 import os
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
+import pygame
 import threading
 import pandas as pd
 
@@ -98,7 +99,8 @@ class QuizAppController():
             self.ui.print_header("全問正解しました!!")
             self.play_audio_spk("squash")
         else:
-            print(f"{self.line}\n{quiz_count}問中{miss_count}問間違えました。\n間違えた単語は以下の通りです。")
+            miss_ratio = round((1 - (miss_count/quiz_count)) ** 100, 3)
+            print(f"{self.line}\n{quiz_count}問中{miss_count}問間違えました。\n正解率は{miss_ratio}%です。\n間違えた単語は以下の通りです。")
             if (miss_count / quiz_count) <= 0.75:
                 self.play_audio_spk("deruzibazeyo")
             else:
@@ -116,8 +118,13 @@ class QuizAppController():
         self.retry()
 
     def retry(self):
-        if self.ui.input_Yn("再挑戦しますか(Y/n)?") == True:
-            self.set_quiz(self.path, self.mode)
+        user_select = int(self.ui.input_option(["normalモードで再挑戦", "ミスのみモードで再挑戦", "やめる"]))
+        if user_select >= 1 and user_select <= 2:
+            if user_select == 1:
+                self.set_quiz(self.path, self.mode)
+            elif user_select == 2:
+                self.mode = "miss"
+                self.set_quiz(self.path, self.mode)
             self.quiz()
         else:
             exit()
@@ -147,7 +154,7 @@ class QuizAppController():
         self.main.title("Welcome To Speaki Quiz")
         self.play_audio_spk("squash", True, 2)
         self.play_audio_spk("spk")
-        select = self.main.input_option(["quiz(input)", "quiz(select)"], "")
+        select = self.main.input_option(["直接入力形式", "番号選択形式"], "回答形式を選択してください。")
         self.read_history()
 
         if select == "2":

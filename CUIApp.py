@@ -5,7 +5,7 @@ class CUIApp:
     def title(self, text):
         print(f"{self.line}\n{text}\n{self.line}")
     
-    def input_option(self, option_lst, sentence, index=1):
+    def input_option(self, option_lst, sentence="", index=1):
         print(sentence)
         for index, text in enumerate(option_lst, start=index):
             print(f"[{index}: {text}]")
